@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1537066301050
+Build-Jdk: 1.8.0_121
+Built-By: arkazero
+Bundle-Description: PICA:::Reporte Contabilidad
+Bundle-ManifestVersion: 2
+Bundle-Name: Reporte Contabilidad - OMS
+Bundle-SymbolicName: com.javariana.pica.reporte-contabilidad
+Bundle-Version: 1.0.0.SNAPSHOT
+Created-By: Apache Maven Bundle Plugin
+Export-Package: co.ogv.anh.services;version="1.0.0"
+Import-Package: com.fasterxml.jackson.jaxrs.json,javax.jws,javax.ws.rs;v
+ ersion="[2.0,3)",javax.xml.bind.annotation,org.apache.activemq.camel.co
+ mponent,org.apache.camel.builder;version="[2.17,3)",org.apache.log4j;ve
+ rsion="[1.2,2)",org.slf4j;version="[1.7,2)"
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.8))"
+Tool: Bnd-3.5.0.201709291849

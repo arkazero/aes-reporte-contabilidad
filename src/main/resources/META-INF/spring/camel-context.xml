@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Configures the Camel Context -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:camel="http://camel.apache.org/schema/spring"
+	xmlns:ctx="http://www.springframework.org/schema/context"
+	xmlns:cxf="http://camel.apache.org/schema/cxf"
+	xmlns:http-conf="http://cxf.apache.org/transports/http/configuration"
+	xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:osgi="http://www.springframework.org/schema/osgi"
+	xmlns:osgix="http://www.springframework.org/schema/osgi-compendium"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="         http://camel.apache.org/schema/cxf http://camel.apache.org/schema/cxf/camel-cxf.xsd     http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd        http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd        http://www.springframework.org/schema/osgi-compendium http://www.springframework.org/schema/osgi-compendium/spring-osgi-compendium.xsd        http://www.springframework.org/schema/osgi http://www.springframework.org/schema/osgi/spring-osgi.xsd        http://cxf.apache.org/transports/http/configuration http://cxf.apache.org/schemas/configuration/http-conf.xsd">
+	<!-- Configuracion de Properties -->
+	<import resource="properties-beans.xml" />
+	<cxf:rsServer address="${cxf.server}/reporteContabilidad"
+		id="rsServer"
+		serviceClass="com.pica.javeriana.rs.ReporteContabilidadImpl">
+		<cxf:extensionMappings>
+			<entry key="json" value="application/json" />
+		</cxf:extensionMappings>
+		<cxf:providers>
+			<bean
+				class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider" />
+		</cxf:providers>
+	</cxf:rsServer>
+	<!-- Web services Client CXF -->
+	<http-conf:conduit name="*.http-conduit">
+		<http-conf:client ConnectionTimeout="120000"
+			ReceiveTimeout="120000" />
+	</http-conf:conduit>
+	<!-- Logging conf -->
+
+	<bean class="org.slf4j.LoggerFactory" factory-method="getLogger"
+		id="contableLog">
+		<constructor-arg type="java.lang.String"
+			value="com.pica.javeriana.rs" />
+	</bean>
+
+	<bean
+		class="org.apache.activemq.camel.component.ActiveMQComponent"
+		id="activemq">
+		<property name="brokerURL" value="tcp://localhost:61616" />
+		<property name="userName" value="admin" />
+		<property name="password" value="admin" />
+	</bean>
+	<bean class="org.apache.camel.builder.LoggingErrorHandlerBuilder "
+		id="loggingErrorHandler">
+		<property name="logName" value="mylogger.name" />
+		<property name="level" value="DEBUG" />
+	</bean>
+
+	<camelContext id="reporte-contabilidad" trace="false"
+		xmlns="http://camel.apache.org/schema/spring">
+		<propertyPlaceholder id="properties"
+			location="ref:confProps" />
+		<dataFormats>
+			<json id="jack" library="Jackson" />
+		</dataFormats>
+
+		<route id="route-reporte_pago" streamCache="true" trace="false">
+			<from id="_from3" uri="cxfrs:bean:rsServer?bindingStyle=Default" />
+			<log id="_log1" message="Primer mensaje :::: ${body}" />
+			<to id="_to4" uri="activemq:queue:pago?mapJmsMessage=false" />
+			<to id="_to_mock" uri="mock:endRoute" />
+		</route>
+
+		<camel:route id="lectura-queue-pago">
+			<camel:from id="fromPago"
+				uri="activemq:queue:order" />
+			<log message="Route message from in queue to out queue with data ${body}" />
+						
+
+			<camel:to uri="ftp://190.145.72.93/ftp?username=picaamp;password="/>
+			<to id="_toLog" uri="mock:endRoute" />
+		</camel:route>
+	</camelContext>
+</beans>
